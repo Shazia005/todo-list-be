@@ -10,16 +10,36 @@ const PORT = process.env.PORT || 5000;
 // Connect to MongoDB
 connectDB();
 
-// Middleware
-app.use(cors({
-  origin: ["https://todo-app-brown-one-94.vercel.app", "http://localhost:5173"],
+// CORS Configuration
+const allowedOrigins = [
+  "https://todo-app-brown-one-94.vercel.app",
+  "http://localhost:5173",
+];
+
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
-}));
+  })
+);
+
 app.use(express.json());
-// Handle preflight requests explicitly
-app.options("*", cors());
+
+// Explicitly handle OPTIONS preflight
+app.options("*", (req, res) => {
+  res.header("Access-Control-Allow-Origin", "https://todo-app-brown-one-94.vercel.app");
+  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.sendStatus(200);
+});
 
 // Routes
 app.use("/api/todos", todoRoutes);
