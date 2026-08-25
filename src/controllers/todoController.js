@@ -1,79 +1,61 @@
-import Todo from "../models/todo.js";
+import Todo from "../models/Todo.js";
 
 // 1. GET ALL TODOS
-// route: GET /api/todos
 export const getTodos = async (req, res) => {
   try {
-    const todos = await Todo.find().sort({ createdAt: -1 });
+    const todos = await Todo.find({ user: req.user.userId });
     res.json(todos);
   } catch (error) {
-    res.status(500).json({ error: "Failed to fetch todos", details: error.message });
+    res.status(500).json({ message: "Server Error", error: error.message });
   }
 };
 
 // 2. CREATE A NEW TODO
-// route: POST /api/todos
 export const createTodo = async (req, res) => {
   try {
     const { text, title } = req.body;
-    const taskText = text || title;
-
-    if (!taskText || !taskText.trim()) {
-      return res.status(400).json({ error: "Task text is required" });
-    }
 
     const newTodo = await Todo.create({
-      title: taskText.trim(),
-      completed: false,
+      title: title || text, // Fallback if front-end sends text
+      text,
+      user: req.user.userId,
     });
 
     res.status(201).json(newTodo);
   } catch (error) {
-    res.status(500).json({ error: "Failed to create todo", details: error.message });
+    res.status(500).json({ message: "Server Error", error: error.message });
   }
 };
 
-// 3. UPDATE A TODO (Text or Completion Status)
-// route: PUT /api/todos/:id
+// 3. UPDATE A TODO
 export const updateTodo = async (req, res) => {
   try {
     const { id } = req.params;
-    const { text, title, completed } = req.body;
 
-    const updates = {};
-    if (text !== undefined) updates.title = text.trim();
-    if (title !== undefined) updates.title = title.trim();
-    if (completed !== undefined) updates.completed = completed;
-
-    const updatedTodo = await Todo.findByIdAndUpdate(id, updates, {
-      new: true,
-      runValidators: true,
-    });
-
-    if (!updatedTodo) {
-      return res.status(404).json({ error: "Todo not found" });
+    const todo = await Todo.findOne({ _id: id, user: req.user.userId });
+    if (!todo) {
+      return res.status(404).json({ message: "Todo not found or unauthorized" });
     }
 
+    const updatedTodo = await Todo.findByIdAndUpdate(id, req.body, { new: true });
     res.json(updatedTodo);
   } catch (error) {
-    res.status(500).json({ error: "Failed to update todo", details: error.message });
+    res.status(500).json({ message: "Server Error", error: error.message });
   }
 };
 
 // 4. DELETE A TODO
-// route: DELETE /api/todos/:id
 export const deleteTodo = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const deletedTodo = await Todo.findByIdAndDelete(id);
-
+    const deletedTodo = await Todo.findOneAndDelete({ _id: id, user: req.user.userId });
     if (!deletedTodo) {
-      return res.status(404).json({ error: "Todo not found" });
+      return res.status(404).json({ message: "Todo not found or unauthorized" });
     }
 
-    res.json({ message: "Todo deleted successfully" });
+    res.json({ message: "Task deleted successfully" });
   } catch (error) {
-    res.status(500).json({ error: "Failed to delete todo", details: error.message });
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };

@@ -1,22 +1,24 @@
 import mongoose from "mongoose";
 
-const todoSchema = new mongoose.Schema(
-  {
-    title: {
-      type: String,
-      required: [true, "Title is required"],
-      trim: true,
-    },
-    completed: {
-      type: Boolean,
-      default: false,
-    },
+const todoSchema = new mongoose.Schema({
+  title: {
+    type: String,
+    trim: true,
   },
-  {
-    timestamps: true, // Automatically manages createdAt and updatedAt fields
-  }
-);
+  text: {
+    type: String,
+    required: [true, "Text is required"],
+    trim: true,
+  },
+  completed: {
+    type: Boolean,
+    default: false,
+  },
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: true,
+  },
+});
 
-const Todo = mongoose.model("Todo", todoSchema);
-
-export default Todo;
+export default mongoose.model("Todo", todoSchema);

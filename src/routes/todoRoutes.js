@@ -1,20 +1,21 @@
-const express = require('express');
+import express from 'express';
+import authMiddleware from '../middleware/authMiddleware.js';
+import {
+  getTodos,
+  createTodo,
+  updateTodo,
+  deleteTodo
+} from '../controllers/todoController.js';
+
 const router = express.Router();
-const{
-    getTodos,
-    createTodo,
-    updateTodo,
-    deleteTodo
-} = require('../controllers/todoController');
 
-// Route chaining for cleaner syntax
-router.route('/')
-.get(getTodos)
-.post(createTodo);
+// Apply authMiddleware to all routes in this router
+router.use(authMiddleware);
 
-router.route('/:id')
-.put(updateTodo)
-.delete(deleteTodo);
+router.get('/', getTodos);
+router.post('/', createTodo);
+router.put('/:id', updateTodo);
+router.delete('/:id', deleteTodo);
 
-module.exports = router
+export default router;
 
