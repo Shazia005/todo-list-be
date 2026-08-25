@@ -46,7 +46,7 @@ app.use("/api/todos", todoRoutes);
 app.use("/api/auth", authRoutes);
 
 app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+  console.log(`Server running on :${PORT}`);
 });
 
 export default app;
